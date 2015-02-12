@@ -1,5 +1,5 @@
 # music-recom
-try to do music recommendation based on xiami play lists.
+Crawl play lists data from xiami. Using these lists data to train recommendation model.
 
 
 ## data struction  
