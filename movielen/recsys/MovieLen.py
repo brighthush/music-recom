@@ -51,7 +51,7 @@ class MovieLen:
         print '=============================================='
         fin.close()
 
-    def buildData():
+    def buildData(self):
         trainData = []
         testData = []
         for uid in self.users:
@@ -67,10 +67,10 @@ class MovieLen:
                     trainData.append((uid, iid, r, ts))
         return trainData, testData
 
-    def getUsersNum():
+    def getUsersNum(self):
         return len(self.users)
 
-    def getItemsNum():
+    def getItemsNum(self):
         return len(self.itemsSet)
 
 
