@@ -12,9 +12,9 @@ def main():
     usersNum = movielen.getUsersNum()
     itemsNum = movielen.getItemsNum()
 
-    matrixfa = mf.MatrixFactor(trainData, testData, usersNum, itemsNum, vecLen=2)
+    matrixfa = mf.MatrixFactor(trainData, testData, usersNum, itemsNum, alpha=.02, vecLen=2, iterNum=200)
     matrixfa.train()
-    matrixfa.approMatrix()
+    #matrixfa.approMatrix()
 
 
 if __name__ == '__main__':

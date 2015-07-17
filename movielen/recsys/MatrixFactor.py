@@ -15,6 +15,7 @@ class MatrixFactor:
     vecLen = 100
     iterNum = 1000
     alpha = 0.2
+    lam = 0.2
     trainData = None
     testData = None
 
@@ -27,12 +28,12 @@ class MatrixFactor:
         for uid in range(1, usersNum+1):
             uv = []
             for i in range(vecLen):
-                uv.append(random.uniform(0, 0.001))
+                uv.append(random.uniform(0, 0.5))
             self.usersVec[uid] = uv
         for iid in range(1, itemsNum+1):
             iv = []
             for i in range(vecLen):
-                iv.append(random.uniform(0, 0.001))
+                iv.append(random.uniform(0, 0.5))
             self.itemsVec[iid] = iv
         self.vecLen = vecLen
         self.iterNum = iterNum
@@ -63,8 +64,15 @@ class MatrixFactor:
             pass
 
 
+    def vecSquare(self, vec):
+        squ = .0
+        for dim in vec:
+            squ += (dim * dim)
+        return squ
+
+
     def disVec(self, vec, name):
-        print '%s\t' %(name)
+        print '\t%s\t' %(name),
         for val in vec:
             if math.isnan(val):
                 exit()
@@ -76,6 +84,7 @@ class MatrixFactor:
     def trainSample(self, sample, uvecsum, ivecsum):
         uid = sample[0]
         iid = sample[1]
+        print 'user %d, item %d, r %f' %(uid, iid, sample[2])
         uvec = self.usersVec[uid]
         ivec = self.itemsVec[iid]
 
@@ -85,13 +94,15 @@ class MatrixFactor:
         deluser = [.0] * self.vecLen
         delitem = [.0] * self.vecLen
         for j in range(self.vecLen):
-            deluser[j] = self.alpha * ( 2.0 * diff * ivec[j] + 2.0 * uvec[j] )
-            delitem[j] = self.alpha * ( 2.8 * diff * uvec[j] + 2.0 * ivec[j] )
+            deluser[j] = self.alpha * ( 2.0 * diff * ivec[j] + 2.0 * self.lam * uvec[j] )
+            delitem[j] = self.alpha * ( 2.8 * diff * uvec[j] + 2.0 * self.lam * ivec[j] )
 
-        self.disVec(deluser, 'deluser')
-        self.disVec(delitem, 'delitem')
+        #self.disVec(deluser, 'deluser')
+        #self.disVec(delitem, 'delitem')
         self.vecSub(uvec, deluser)
         self.vecSub(ivec, delitem)
+        self.disVec(uvec, 'uvec %d' %(uid))
+        self.disVec(ivec, 'ivec %d' %(iid))
 
 
     def train(self):
@@ -102,15 +113,29 @@ class MatrixFactor:
             ivecsum = [.0] * self.vecLen
             for line in self.trainData:
                 self.trainSample(line, uvecsum, ivecsum)
+            print 'rmse %f' %(self.rmse())
+            self.approMatrix()
         print '\t end train MatrixFactor model ...'
 
 
     def approMatrix(self):
         for i in range(1, self.usersNum+1):
-            for j in  range(1, self.itemsNum+1):
+            for j in  range(1, self.itemsNum):
                 uvec = self.usersVec[i]
-                ivec = self.itemsVec[i]
-                print '%d %d %d' %(i, j, self.vecDot(uvec, ivec))
+                ivec = self.itemsVec[j]
+                print '%d %d %f' %(i, j, self.vecDot(uvec, ivec))
 
+
+    def rmse(self):
+        rmseSum = 0.0
+        for line in self.trainData:
+            uid = line[0]
+            iid = line[1]
+            r = line[2]
+            uvec = self.usersVec[uid]
+            ivec = self.itemsVec[iid]
+            rest = self.vecDot(uvec, ivec)
+            rmseSum += ((rest - r) * (rest - r) + self.lam * (self.vecSquare(uvec) + self.vecSquare(ivec)))
+        return math.sqrt(rmseSum)
 
 
